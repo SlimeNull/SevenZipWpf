@@ -1,0 +1,121 @@
+﻿<Window x:Class="SevenZipWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SevenZipWpf"
+        xmlns:viewModels="clr-namespace:SevenZipWpf.ViewModels"
+        xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+        xmlns:wpfbp="clr-namespace:EleCho.WpfUtilities;assembly=EleCho.WpfUtilities.BindingProxy"
+        xmlns:converters="clr-namespace:SevenZipWpf.Converters"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        d:DataContext="{d:DesignInstance Type=local:MainWindow}">
+    <Window.Resources>
+        <wpfbp:BindingProxy x:Key="DataContext" Data="{Binding}"/>
+        <converters:ByteCountToSizeTextConverter x:Key="ByteCount2Text"/>
+    </Window.Resources>
+    <behaviors:Interaction.Triggers>
+        <behaviors:EventTrigger EventName="Loaded">
+            <behaviors:InvokeCommandAction Command="{Binding ViewModel.EnterAppCurrentPathCommand}"/>
+        </behaviors:EventTrigger>
+    </behaviors:Interaction.Triggers>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem Header="Open"/>
+                <MenuItem Header="Open Inside"/>
+                <MenuItem Header="Open Inside *"/>
+                <MenuItem Header="Open Inside #"/>
+                <MenuItem Header="Open Outside"/>
+                <MenuItem Header="View"/>
+                <MenuItem Header="Edit"/>
+                <Separator/>
+                <MenuItem Header="Rename"/>
+                <MenuItem Header="Copy To..."/>
+                <MenuItem Header="Move To..."/>
+                <MenuItem Header="Delete"/>
+                <Separator/>
+                <MenuItem Header="Split file..."/>
+                <MenuItem Header="Combine files..."/>
+                <Separator/>
+                <MenuItem Header="Properties"/>
+            </MenuItem>
+            <MenuItem Header="Edit"/>
+            <MenuItem Header="View"/>
+            <MenuItem Header="Favorites"/>
+            <MenuItem Header="Tools"/>
+            <MenuItem Header="Help"/>
+        </Menu>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Add"/>
+            <MenuItem Header="Extract"/>
+            <MenuItem Header="Test"/>
+            <MenuItem Header="Copy"/>
+            <MenuItem Header="Move"/>
+            <MenuItem Header="Delete"/>
+            <MenuItem Header="Info"/>
+        </Menu>
+        <DockPanel DockPanel.Dock="Top" Margin="2">
+            <Button DockPanel.Dock="Left" Content="Previous Level" Command="{Binding ViewModel.EnterPreviousLevelPathCommand}"/>
+            <TextBox Margin="3 0 0 0" Text="{Binding ViewModel.CurrentPath,UpdateSourceTrigger=PropertyChanged}">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding ViewModel.LoadFsItemsCommand}"/>
+                </TextBox.InputBindings>
+                <behaviors:Interaction.Triggers>
+                    <behaviors:EventTrigger EventName="LostFocus">
+                        <behaviors:InvokeCommandAction Command="{Binding ViewModel.ResetCurrentPathCommand}"/>
+                    </behaviors:EventTrigger>
+                </behaviors:Interaction.Triggers>
+            </TextBox>
+        </DockPanel>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <StatusBarItem.Content>
+                    <TextBlock>
+                        <Run Text="{Binding ViewModel.SelectedFsItems.Length,Mode=OneWay,FallbackValue=0}"/>
+                        <Run Text="/"/>
+                        <Run Text="{Binding ViewModel.FsItems.Length,Mode=OneWay,FallbackValue=0}"/>
+                        <Run Text="Object(s) selected"/>
+                    </TextBlock>
+                </StatusBarItem.Content>
+            </StatusBarItem>
+            <Separator Margin="5 0" Background="#e0e0e0"/>
+            <StatusBarItem Content="{Binding ViewModel.SelectedFsItem.Size,FallbackValue=''}"/>
+            <Separator Margin="5 0" Background="#e0e0e0"/>
+            <StatusBarItem Content="{Binding ViewModel.SelectedFsItem.Size,Converter={StaticResource ByteCount2Text},FallbackValue=''}"/>
+            <Separator Margin="5 0" Background="#e0e0e0"/>
+            <StatusBarItem Content="{Binding ViewModel.SelectedFsItem.ModifiedDateTime,FallbackValue=''}"/>
+        </StatusBar>
+        <ListView Name="FsListView"
+                  DockPanel.Dock="Top" VerticalAlignment="Stretch" BorderThickness="0"
+                  ItemsSource="{Binding ViewModel.FsItems}"
+                  SelectedItem="{Binding ViewModel.SelectedFsItem}"
+                  Foreground="{x:Static SystemColors.ControlTextBrush}">
+            <behaviors:Interaction.Triggers>
+                <behaviors:EventTrigger EventName="SelectionChanged">
+                    <behaviors:InvokeCommandAction Command="{Binding ViewModel.ChangeSelectedItemsCommand}" CommandParameter="{Binding ElementName=FsListView,Path=SelectedItems}"/>
+                </behaviors:EventTrigger>
+            </behaviors:Interaction.Triggers>
+            <ListView.InputBindings>
+                <KeyBinding Key="Return" Command="{Binding ViewModel.EnterPathCommand}"/>
+            </ListView.InputBindings>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size}"/>
+                    <GridViewColumn Header="Modified" DisplayMemberBinding="{Binding ModifiedDateTime}"/>
+                    <GridViewColumn Header="Created" DisplayMemberBinding="{Binding CreationDateTime}"/>
+                    <GridViewColumn Header="Comment" DisplayMemberBinding="{Binding Comment}"/>
+                    <GridViewColumn Header="Folders" DisplayMemberBinding="{Binding FolderCount}"/>
+                    <GridViewColumn Header="Files" DisplayMemberBinding="{Binding FileCount}"/>
+                </GridView>
+            </ListView.View>
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="ListViewItem_MouseDoubleClick"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+        </ListView>
+    </DockPanel>
+</Window>
